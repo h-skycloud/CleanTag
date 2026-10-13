@@ -1,0 +1,105 @@
+<Page x:Class="CleanTag.ReviewPage"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="using:CleanTag.Controls"
+ Loaded="Page_Loaded" Unloaded="Page_Unloaded">
+
+ <Grid x:Name="Shell" Background="{ThemeResource CanvasBrush}" Padding="28,12,28,18" RowSpacing="16" SizeChanged="Shell_SizeChanged" KeyDown="Shell_KeyDown">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Grid ColumnSpacing="20">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Gelenler" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+   <TextBlock x:Name="HeaderCaption" Grid.Column="1" Text="" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+   <CommandBar Grid.Column="2" Background="Transparent" DefaultLabelPosition="Right" IsOpen="False">
+    <AppBarButton x:Name="ChooseButton" Icon="OpenFile" Label="Klasör seç" Click="ChooseFolder_Click"/>
+    <AppBarButton x:Name="NewResultsButton" Icon="Sync" Label="Yeni gelenleri göster" Click="NewResults_Click" Visibility="Collapsed"/>
+    <AppBarButton Icon="Setting" Label="Ayarlar" Click="Settings_Click"/>
+    <CommandBar.SecondaryCommands><AppBarButton Label="Filtreler ve sıralama" Click="CompactFilters_Click"/><AppBarButton Label="Aynı klasördeki dosyalar" Click="CompactSiblings_Click"/><AppBarButton Label="Dosyayı kendi uygulamasında aç" Click="OpenFile_Click"/><AppBarButton Label="Dosya Gezgini’nde göster" Click="RevealFile_Click"/><AppBarButton Label="Çöp Kutusu’nu aç" Click="OpenRecycle_Click"/><AppBarButton Label="Çöp Kutusu’nu boşalt" Click="EmptyRecycle_Click"/><AppBarButton Label="JSON geçmişini göster" Click="ShowHistory_Click"/><AppBarButton Label="İncelemeyi yeniden başlat" Click="ResetReview_Click"/></CommandBar.SecondaryCommands>
+   </CommandBar>
+  </Grid>
+  <Grid Grid.Row="1" RowSpacing="6">
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <InfoBar x:Name="MessageBar" IsOpen="False" IsClosable="True"/>
+   <InfoBar x:Name="MissingBar" Grid.Row="2" IsOpen="False" IsClosable="False" Severity="Warning" Title="Bu dosya silinmiş veya taşınmış." Message="Dosya artık eski konumunda yok."><InfoBar.ActionButton><Button Content="Direkt geç" Click="SkipMissing_Click"/></InfoBar.ActionButton></InfoBar>
+   <Grid x:Name="ScanPanel" Grid.Row="1" Visibility="Collapsed" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <StackPanel Spacing="7"><TextBlock x:Name="ScanLabel" Text="Klasör taranıyor…" TextTrimming="CharacterEllipsis"/><ProgressBar IsIndeterminate="True"/></StackPanel>
+    <Button Grid.Column="1" Content="Taramayı durdur" Click="CancelScan_Click"/>
+   </Grid>
+  </Grid>
+  <Grid Grid.Row="2" x:Name="Workspace" ColumnSpacing="24">
+   <Grid.ColumnDefinitions><ColumnDefinition x:Name="LeftColumn" Width="205"/><ColumnDefinition Width="*"/><ColumnDefinition x:Name="RightColumn" Width="282"/></Grid.ColumnDefinitions>
+   <ScrollViewer x:Name="Sidebar" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Spacing="22" Padding="0,8,0,0">
+     <StackPanel Spacing="8"><TextBlock Text="ÇALIŞMA ALANI" FontSize="11" CharacterSpacing="120" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      <StackPanel Orientation="Horizontal" Spacing="8"><FontIcon Glyph="&#xE8B7;" Foreground="{ThemeResource AccentBrush}"/><TextBlock x:Name="RootName" Text="Klasör seçilmedi" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="173"/></StackPanel>
+      <TextBlock x:Name="RootStats" Text="Alt klasörler dahil taranır." FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/>
+     </StackPanel>
+     <StackPanel Spacing="12">
+      <TextBox x:Name="SearchBox" PlaceholderText="İsim veya konum ara" TextChanged="Filter_Changed" AutomationProperties.Name="Dosya ara"/>
+      <ComboBox x:Name="TypeFilter" Header="Dosya türü" SelectedIndex="0" HorizontalAlignment="Stretch" SelectionChanged="Filter_Changed"><x:String>Tüm dosyalar</x:String><x:String>Görseller</x:String><x:String>Tasarım / model</x:String><x:String>Belgeler</x:String><x:String>Videolar</x:String><x:String>Sesler</x:String><x:String>Arşivler</x:String><x:String>Diğer</x:String></ComboBox>
+      <ComboBox x:Name="SortBox" Header="Sıralama" SelectedIndex="0" HorizontalAlignment="Stretch" SelectionChanged="Filter_Changed"><x:String>En büyük önce</x:String><x:String>En eski önce</x:String><x:String>En yeni önce</x:String><x:String>Dosya adı</x:String><x:String>Klasöre göre</x:String></ComboBox>
+      <ToggleSwitch x:Name="ShowDeferred" Header="Ertelenenleri göster" OnContent="Önceki oturumlar dahil" OffContent="Önceki ertelemeler gizli" Toggled="Filter_Changed"/>
+     </StackPanel>
+     <StackPanel Spacing="9"><TextBlock Text="BU OTURUM" FontSize="11" CharacterSpacing="120" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      <TextBlock x:Name="KeptLabel" Text="0 dosya tutuldu"/><TextBlock x:Name="TrashLabel" Text="0 B Çöp Kutusu’nda"/><TextBlock x:Name="PermanentLabel" Text="0 B kalıcı silindi"/>
+      <TextBlock Text="Çöp Kutusu boşaltılana kadar dosyalar diskte yer tutar." FontSize="11" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+     </StackPanel>
+     <Button Content="Son tutma kararını geri al" Click="UndoKeep_Click" x:Name="UndoKeepButton" IsEnabled="False" FontSize="11" HorizontalAlignment="Stretch"/>
+     <Button Content="Çöp Kutusu’nu boşalt" Click="EmptyRecycle_Click" HorizontalAlignment="Stretch" FontSize="12"/>
+     <Button x:Name="UndoTagsButton" Content="Son etiket işlemini geri al" Click="UndoTags_Click" IsEnabled="False" HorizontalAlignment="Stretch" FontSize="11"/>
+     <Button Content="JSON geçmişini göster" Click="ShowHistory_Click" HorizontalAlignment="Stretch" FontSize="12"/>
+     <StackPanel Spacing="6"><TextBlock Text="KLAVYE" FontSize="11" CharacterSpacing="120" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/><TextBlock Text="← Sil     → Tut     ↓ Sonra" FontSize="12"/></StackPanel>
+    </StackPanel>
+   </ScrollViewer>
+   <Grid Grid.Column="1" x:Name="MainArea" RowSpacing="12">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="QueueLabel" Text="İNCELEME" FontSize="12" CharacterSpacing="100" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/><TextBlock x:Name="ModeLabel" Grid.Column="1" Text="Çöp Kutusu modu" FontSize="12" Foreground="{ThemeResource AccentBrush}"/><TextBlock x:Name="PermanentModeLabel" Grid.Column="1" Text="● KALICI SİLME AÇIK" FontSize="12" Foreground="{ThemeResource DangerBrush}" Visibility="Collapsed"/></Grid>
+    <Grid Grid.Row="1" x:Name="CardStage">
+     <Border x:Name="FileCard" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="18" Visibility="Collapsed" RenderTransformOrigin="0.5,0.6" PointerPressed="Card_PointerPressed" PointerMoved="Card_PointerMoved" PointerReleased="Card_PointerReleased" PointerCanceled="Card_PointerCanceled" PointerCaptureLost="Card_PointerCanceled">
+      <Border.RenderTransform><CompositeTransform x:Name="CardTransform"/></Border.RenderTransform>
+      <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+       <Grid Padding="22,18" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel Spacing="5"><TextBlock x:Name="FileNameLabel" FontSize="23" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="FileMetaLabel" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/></StackPanel>
+        <Border Grid.Column="1" Background="{ThemeResource AccentSoftBrush}" CornerRadius="7" Padding="10,6" VerticalAlignment="Top"><TextBlock x:Name="ExtensionLabel" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource AccentBrush}"/></Border>
+       </Grid>
+       <Grid Grid.Row="1" Margin="12,0">
+        <controls:FilePreview x:Name="PreviewSurface"/>
+        <Border x:Name="SwipeBadge" Visibility="Collapsed" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="10" Padding="24,12" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,28,0,0"><TextBlock x:Name="SwipeLabel" FontSize="28" FontWeight="Bold"/></Border>
+       </Grid>
+       <StackPanel Grid.Row="2" Padding="20,12,20,16" Spacing="10">
+        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+         <TextBlock x:Name="CurrentTags" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+         <Button Grid.Column="1" x:Name="TagCurrentButton" Content="Etiketle" Click="TagCurrent_Click" IsEnabled="False"/>
+        </Grid>
+        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/><BreadcrumbBar x:Name="PathBreadcrumb" Grid.Column="1" ItemClicked="Breadcrumb_Click"><BreadcrumbBar.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" FontSize="12"/></DataTemplate></BreadcrumbBar.ItemTemplate></BreadcrumbBar></Grid>
+       </StackPanel>
+      </Grid>
+     </Border>
+     <StackPanel x:Name="EmptyPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="18" MaxWidth="440" Margin="24"><FontIcon Glyph="&#xE8B7;" FontSize="64" Foreground="{ThemeResource AccentBrush}"/><TextBlock x:Name="EmptyTitle" Text="Bir klasörle başla." FontSize="32" FontWeight="SemiBold" TextAlignment="Center"/><TextBlock x:Name="EmptyText" Text="Dosyaları önizle. Sola kaydırarak sil, sağa kaydırarak tut." FontSize="16" TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/><Button x:Name="QuickStartButton" Content="Masaüstünü incele" Click="QuickStart_Click" HorizontalAlignment="Center" Padding="22,12"/></StackPanel>
+    </Grid>
+    <StackPanel Grid.Row="2" Spacing="8">
+     <Grid ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <Button x:Name="PreviousFileButton" Click="PreviousFile_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,6" AutomationProperties.Name="Önceki dosya">
+       <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="‹" FontSize="24" VerticalAlignment="Center"/><Border Grid.Column="1" Width="44" Height="38" Background="{ThemeResource PreviewBrush}" CornerRadius="4"><Grid><TextBlock x:Name="PreviousType" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="PreviousThumbnail" Stretch="Uniform"/></Grid></Border><StackPanel Grid.Column="2" VerticalAlignment="Center"><TextBlock Text="Önceki" FontSize="10"/><TextBlock x:Name="PreviousName" Text="—" TextTrimming="CharacterEllipsis" FontSize="12"/></StackPanel></Grid>
+      </Button>
+      <Button x:Name="NextFileButton" Grid.Column="1" Click="NextFile_Click" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="10,6" AutomationProperties.Name="Sonraki dosya">
+       <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border Width="44" Height="38" Background="{ThemeResource PreviewBrush}" CornerRadius="4"><Grid><TextBlock x:Name="NextType" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/><Image x:Name="NextThumbnail" Stretch="Uniform"/></Grid></Border><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="Sonraki" FontSize="10"/><TextBlock x:Name="NextName" Text="—" TextTrimming="CharacterEllipsis" FontSize="12"/></StackPanel><TextBlock Grid.Column="2" Text="›" FontSize="24" VerticalAlignment="Center"/></Grid>
+      </Button>
+     </Grid>
+     <Grid ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <Button x:Name="DeleteButton" Click="Delete_Click" HorizontalAlignment="Stretch" Padding="20,14" IsEnabled="False" Foreground="{ThemeResource DangerBrush}"><StackPanel Orientation="Horizontal" Spacing="10"><FontIcon Glyph="&#xE74D;" FontSize="18"/><TextBlock x:Name="DeleteLabel" Text="Sola · Sil" FontWeight="SemiBold"/></StackPanel></Button>
+      <Button Grid.Column="1" x:Name="LaterButton" Content="Sonra" Click="Later_Click" Padding="18,14" IsEnabled="False"/>
+      <Button Grid.Column="2" x:Name="KeepButton" Click="Keep_Click" HorizontalAlignment="Stretch" Background="{ThemeResource AccentSoftBrush}" Foreground="{ThemeResource AccentBrush}" Padding="20,14" IsEnabled="False"><StackPanel Orientation="Horizontal" Spacing="10"><TextBlock Text="Tut · Sağa" FontWeight="SemiBold"/><FontIcon Glyph="&#xE73E;" FontSize="18"/></StackPanel></Button>
+     </Grid><TextBlock Text="Kartı sürükle veya klavye oklarını kullan." TextAlignment="Center" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+    </StackPanel>
+   </Grid>
+   <Grid Grid.Column="2" x:Name="Inspector" RowSpacing="12"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <StackPanel Spacing="4"><TextBlock Text="Aynı klasörde" FontSize="18" FontWeight="SemiBold"/><TextBlock x:Name="SiblingCount" Text="Dosya seçildiğinde görünür" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/></StackPanel>
+    <TextBlock x:Name="SiblingFolder" Grid.Row="1" FontSize="12" TextWrapping="Wrap" MaxLines="2" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+    <ListView Grid.Row="2" x:Name="SiblingList" SelectionMode="None" IsItemClickEnabled="True" ItemClick="Sibling_Click" Background="Transparent"><ListView.ItemTemplate><DataTemplate><Grid Padding="0,8" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Border Width="36" Height="40" Background="{ThemeResource PreviewBrush}" CornerRadius="5"><TextBlock Text="{Binding TypeLabel}" FontSize="9" FontWeight="SemiBold" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="34" TextTrimming="CharacterEllipsis"/></Border><StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="12"/><TextBlock Text="{Binding SizeLabel}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/></StackPanel></Grid></DataTemplate></ListView.ItemTemplate></ListView>
+    <StackPanel Grid.Row="3" Spacing="8"><Button Content="Dosyayı kendi uygulamasında aç ↗" Click="OpenFile_Click" HorizontalAlignment="Stretch" FontSize="12"/><Button Content="Dosya Gezgini’nde göster" Click="RevealFile_Click" HorizontalAlignment="Stretch" FontSize="12"/></StackPanel>
+   </Grid>
+  </Grid>
+  <Grid Grid.Row="3" ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="StatusLabel" Text="Yerel dosyalar · Önizleme için hiçbir dosya yüklenmez" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/><ProgressBar x:Name="ReviewProgress" Grid.Column="1" Width="130" Value="0" VerticalAlignment="Center" AutomationProperties.Name="İnceleme ilerlemesi"/></Grid>
+ </Grid>
+</Page>

@@ -1,0 +1,18 @@
+<Page x:Class="CleanTag.WorkspacePage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Loaded="Page_Loaded">
+ <Grid>
+  <NavigationView x:Name="Navigation" PaneDisplayMode="Top" IsBackButtonVisible="Collapsed" IsSettingsVisible="False" SelectionChanged="Navigation_Changed" Visibility="Collapsed">
+   <NavigationView.MenuItems>
+    <NavigationViewItem Content="Gelenler" Tag="review" Icon="OpenFile"/>
+    <NavigationViewItem Content="Kütüphane" Tag="library" Icon="Library"/>
+   </NavigationView.MenuItems>
+   <ContentControl x:Name="PageHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+  </NavigationView>
+  <StackPanel x:Name="StartupPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" MaxWidth="500" Margin="24">
+   <ProgressRing x:Name="StartupProgress" IsActive="True"/>
+   <TextBlock x:Name="StartupTitle" Text="Kütüphane hazırlanıyor…" FontSize="24" FontWeight="SemiBold" TextAlignment="Center"/>
+   <TextBlock x:Name="StartupMessage" Text="Önceki kararlarınız korunarak aktarılıyor." TextWrapping="Wrap" TextAlignment="Center"/>
+   <Button x:Name="RetryButton" Content="Yeniden dene" Click="Retry_Click" Visibility="Collapsed" HorizontalAlignment="Center"/>
+  </StackPanel>
+ </Grid>
+</Page>

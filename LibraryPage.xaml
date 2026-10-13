@@ -1,0 +1,138 @@
+<Page x:Class="CleanTag.LibraryPage"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="using:CleanTag.Controls"
+ Loaded="Page_Loaded" Unloaded="Page_Unloaded">
+ <Page.Resources>
+  <controls:TagColorConverter x:Key="TagColor"/>
+  <DataTemplate x:Key="FileRowTemplate">
+   <Grid Padding="4,6" ColumnSpacing="12">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+    <Grid Width="44" Height="44" Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
+     <TextBlock Text="{Binding TypeLabel}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+     <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+    </Grid>
+    <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+     <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+     <TextBlock Text="{Binding TagsLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+    </StackPanel>
+   </Grid>
+  </DataTemplate>
+  <DataTemplate x:Key="FileTileTemplate">
+   <Grid Width="154" Padding="6" RowSpacing="5">
+    <Grid.RowDefinitions><RowDefinition Height="118"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <Grid Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4">
+     <TextBlock Text="{Binding TypeLabel}" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+     <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="4"/>
+    </Grid>
+    <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Name}"/>
+    <TextBlock Grid.Row="2" Text="{Binding TagsLabel}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+   </Grid>
+  </DataTemplate>
+ </Page.Resources>
+ <Grid x:Name="LayoutRoot" Background="{ThemeResource CanvasBrush}" Padding="20,12,20,12" RowSpacing="10" SizeChanged="Layout_SizeChanged">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Grid ColumnSpacing="12">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Kütüphane" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+   <CommandBar x:Name="MainCommands" Grid.Column="1" Background="Transparent" DefaultLabelPosition="Right">
+    <AppBarButton Icon="Add" Label="Klasör ekle" Click="AddSource_Click"/>
+    <CommandBar.SecondaryCommands>
+     <AppBarButton Icon="Refresh" Label="Yenile" Click="Refresh_Click"/>
+     <AppBarButton x:Name="ScanFoldersButton" Icon="Folder" Label="Alt klasörleri tara" Click="ScanFolders_Click" Visibility="Collapsed"/>
+     <AppBarToggleButton x:Name="MonitoringButton" Label="Otomatik güncelle" Icon="Sync" IsChecked="True" Click="Monitoring_Click"/>
+     <AppBarButton Label="Katalog yedeği al" Click="Backup_Click"/>
+     <AppBarButton Label="Yedeği geri yükle" Click="Restore_Click"/>
+     <AppBarButton Label="Kataloğu JSON olarak dışa aktar" Click="Export_Click"/>
+    </CommandBar.SecondaryCommands>
+   </CommandBar>
+  </Grid>
+  <InfoBar Grid.Row="1" x:Name="MessageBar" IsOpen="False" IsClosable="True"/>
+  <Grid Grid.Row="2" ColumnSpacing="8">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <Button x:Name="BrowseButton" Click="Browse_Click" AutomationProperties.Name="Konumlar ve etiketler" ToolTipService.ToolTip="Konumlar ve etiketler"><FontIcon Glyph="&#xE700;" FontSize="16"/></Button>
+   <TextBox x:Name="SearchBox" Grid.Column="1" PlaceholderText="Dosya, etiket veya konum ara" TextChanged="Search_Changed" AutomationProperties.Name="Kütüphanede ara"/>
+   <Button x:Name="FiltersButton" Grid.Column="2" Content="Filtreler">
+    <Button.Flyout>
+     <Flyout x:Name="FiltersFlyout" Placement="BottomEdgeAlignedRight" Opened="Filters_Opened" Closed="Filters_Closed">
+      <StackPanel x:Name="FilterPanel" Width="230" Spacing="12">
+       <TextBlock Text="Görünüm ve filtreler" FontWeight="SemiBold"/>
+       <ComboBox x:Name="ViewFilter" Header="Görünüm" SelectedIndex="1" HorizontalAlignment="Stretch" SelectionChanged="View_Changed" AutomationProperties.Name="Görünüm"><x:String>Liste</x:String><x:String>Galeri</x:String></ComboBox>
+       <ComboBox x:Name="SortFilter" Header="Sıralama" SelectedIndex="0" HorizontalAlignment="Stretch" SelectionChanged="Filter_Changed" AutomationProperties.Name="Sıralama"><x:String>Ad</x:String><x:String>En büyük önce</x:String><x:String>En yeni önce</x:String></ComboBox>
+       <ComboBox x:Name="TypeFilter" Header="Tür" SelectedIndex="0" HorizontalAlignment="Stretch" SelectionChanged="Filter_Changed" AutomationProperties.Name="Tür filtresi"><x:String>Tüm türler</x:String><x:String>Görseller</x:String><x:String>Tasarım / model</x:String><x:String>Belgeler</x:String><x:String>Videolar</x:String><x:String>Sesler</x:String><x:String>Arşivler</x:String><x:String>Diğer</x:String></ComboBox>
+       <ComboBox x:Name="StateFilter" Header="Durum" SelectedIndex="0" HorizontalAlignment="Stretch" SelectionChanged="Filter_Changed" AutomationProperties.Name="Durum filtresi"><x:String>Tüm dosyalar</x:String><x:String>Tutulanlar</x:String><x:String>Ertelenenler</x:String><x:String>İncelenmeyenler</x:String><x:String>Etiketsizler</x:String><x:String>Bulunamayanlar</x:String></ComboBox>
+       <Button Content="Filtreleri temizle" Click="ClearFilters_Click" HorizontalAlignment="Stretch"/>
+      </StackPanel>
+     </Flyout>
+    </Button.Flyout>
+   </Button>
+   <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
+    <Button x:Name="UpdateResultsButton" Content="Yeni değişiklikler" Click="UpdateResults_Click" Visibility="Collapsed"/>
+    <Button x:Name="CancelScanButton" Content="Taramayı durdur" Click="CancelScan_Click" Visibility="Collapsed"/>
+   </StackPanel>
+  </Grid>
+  <SplitView x:Name="BrowserPane" Grid.Row="3" DisplayMode="Inline" IsPaneOpen="True" OpenPaneLength="204" PaneBackground="{ThemeResource CanvasBrush}">
+   <SplitView.Pane>
+    <Grid Padding="0,4,14,0" RowSpacing="16">
+     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+     <ComboBox x:Name="TaggingMode" SelectedIndex="0" HorizontalAlignment="Stretch" SelectionChanged="Mode_Changed" AutomationProperties.Name="Etiketleme modu"><x:String>Dosya etiketleme</x:String><x:String>Klasör etiketleme</x:String></ComboBox>
+     <Grid Grid.Row="1" RowSpacing="6"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+      <TextBlock Text="Konumlar" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      <ListView x:Name="SourceFilter" Grid.Row="1" MaxHeight="180" SelectionMode="Single" SelectionChanged="Filter_Changed" AutomationProperties.Name="Konum filtresi">
+       <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8" ToolTipService.ToolTip="{Binding Path}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><FontIcon Glyph="&#xE8B7;" FontSize="14"/><TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="12"/></Grid></DataTemplate></ListView.ItemTemplate>
+      </ListView>
+     </Grid>
+     <Grid Grid.Row="2" RowSpacing="6"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+      <TextBlock Text="Etiketler" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      <ListView x:Name="TagFilter" Grid.Row="1" SelectionMode="Single" SelectionChanged="Filter_Changed" AutomationProperties.Name="Etiket filtresi">
+       <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Ellipse Width="8" Height="8" Fill="{Binding Color, Converter={StaticResource TagColor}}"/><TextBlock Grid.Column="1" Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" FontSize="12" ToolTipService.ToolTip="{Binding DisplayName}"/></Grid></DataTemplate></ListView.ItemTemplate>
+      </ListView>
+     </Grid>
+     <TextBlock x:Name="ModeDescription" Grid.Row="3" Text="Dosyaları seçerek etiketleyin." FontSize="11" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+    </Grid>
+   </SplitView.Pane>
+   <Grid x:Name="Workspace" ColumnSpacing="16">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition x:Name="DetailColumn" Width="320"/></Grid.ColumnDefinitions>
+    <Grid>
+     <ListView x:Name="FileList" ItemsSource="{x:Bind Model.Files, Mode=OneWay}" ItemTemplate="{StaticResource FileRowTemplate}" SelectionMode="Multiple" SelectionChanged="Selection_Changed" ContainerContentChanging="Container_Changed" DoubleTapped="File_DoubleTapped" Visibility="Collapsed"/>
+     <GridView x:Name="FileGrid" ItemsSource="{x:Bind Model.Files, Mode=OneWay}" ItemTemplate="{StaticResource FileTileTemplate}" SelectionMode="Multiple" SelectionChanged="Selection_Changed" ContainerContentChanging="Container_Changed" DoubleTapped="File_DoubleTapped"/>
+     <StackPanel x:Name="EmptyPanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="10" MaxWidth="320" Margin="16">
+      <FontIcon Glyph="&#xE8B7;" FontSize="36" Foreground="{ThemeResource AccentBrush}"/>
+      <TextBlock x:Name="EmptyTitle" Text="Kütüphaneni oluştur" FontSize="20" FontWeight="SemiBold" TextAlignment="Center"/>
+      <TextBlock x:Name="EmptyDescription" Text="Klasör ekle ile dosyalarını burada topla." TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+     </StackPanel>
+    </Grid>
+    <Grid x:Name="DetailPanel" Grid.Column="1" RowSpacing="10" Padding="16,4,0,0" BorderThickness="1,0,0,0" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+     <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+     <controls:FilePreview x:Name="PreviewSurface"/>
+     <StackPanel Grid.Row="1" Spacing="4"><TextBlock x:Name="SelectedName" Text="Bir öğe seçin" FontSize="16" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="SelectedInfo" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"/><TextBlock x:Name="SelectedPath" TextWrapping="Wrap" MaxLines="2" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" ToolTipService.ToolTip="{Binding Text, ElementName=SelectedPath}"/></StackPanel>
+     <StackPanel Grid.Row="2" Spacing="6">
+      <TextBlock x:Name="SelectedTags" TextWrapping="Wrap" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      <ScrollViewer MaxHeight="120" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+       <ItemsControl x:Name="SelectedTagChips"><ItemsControl.ItemTemplate><DataTemplate>
+        <Border Background="{ThemeResource LayerFillColorDefaultBrush}" CornerRadius="4" Padding="8,5" Margin="0,2"><StackPanel Orientation="Horizontal" Spacing="8"><Ellipse Width="8" Height="8" Fill="{Binding Color, Converter={StaticResource TagColor}}"/><TextBlock Text="{Binding DisplayName}" FontSize="12" ToolTipService.ToolTip="{Binding Aliases}" TextTrimming="CharacterEllipsis"/></StackPanel></Border>
+       </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+      </ScrollViewer>
+     </StackPanel>
+     <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8"><Button x:Name="OpenButton" Content="Dosyayı aç" Click="Open_Click" IsEnabled="False"/><Button x:Name="RevealButton" Content="Konum" Click="Reveal_Click" IsEnabled="False"/></StackPanel>
+    </Grid>
+   </Grid>
+  </SplitView>
+  <Grid Grid.Row="4" ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+    <TextBlock x:Name="ResultLabel" Text="Katalog hazırlanıyor…" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+    <CommandBar x:Name="SelectionCommands" Background="Transparent" DefaultLabelPosition="Right" Visibility="Collapsed">
+     <AppBarButton x:Name="AddTagsButton" Label="Etiket ekle" Icon="Add" Click="AddTags_Click" IsEnabled="False"/>
+     <CommandBar.SecondaryCommands>
+      <AppBarButton x:Name="RemoveTagsButton" Label="Etiket kaldır" Icon="Remove" Click="RemoveTags_Click" IsEnabled="False"/>
+      <AppBarButton x:Name="UndoTagsButton" Label="Etiket işlemini geri al" Icon="Undo" Click="UndoTags_Click" IsEnabled="False"/>
+      <AppBarButton Label="Seçili öğeyi önizle" Click="Preview_Click"/>
+      <AppBarButton Label="Öğeyi aç" Click="Open_Click"/>
+      <AppBarButton Label="Konumunu göster" Click="Reveal_Click"/>
+     </CommandBar.SecondaryCommands>
+    </CommandBar>
+   </StackPanel>
+   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><Button x:Name="PreviousButton" Content="‹" Click="Previous_Click" IsEnabled="False" AutomationProperties.Name="Önceki sonuç sayfası"/><TextBlock x:Name="PageLabel" Text="0 / 0" VerticalAlignment="Center" FontSize="12"/><Button x:Name="NextButton" Content="›" Click="Next_Click" IsEnabled="False" AutomationProperties.Name="Sonraki sonuç sayfası"/></StackPanel>
+  </Grid>
+ </Grid>
+</Page>

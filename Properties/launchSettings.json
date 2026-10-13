@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "CleanTag (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "CleanTag (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

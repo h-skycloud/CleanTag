@@ -1,0 +1,73 @@
+## .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+artifacts/
+
+# Build logs
+[Ll]og/
+[Ll]ogs/
+*.log
+*.binlog
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+Tests/**/test-data/
+Tests/**/test-results.json
+
+# NuGet
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
+project.lock.json
+
+# MSIX packaging output
+AppPackages/
+BundleArtifacts/
+*.msix
+*.msixupload
+*.appx
+*.appxbundle
+*.appxupload
+
+# Local publish, scratch, and private notes
+publish/
+work/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+decisions.json
+decisions.jsonl
+last-folder.txt
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.pdb
+credentials*.json
+secrets*.json
+appsettings.*.local.json
+LOOKCLEAN-GELISIM-PLANI.md
+
+# Code analysis and tooling
+_ReSharper*/
+*.DotSettings.user
+*.dotCover
+.idea/
+
+# Generated files
+Generated\ Files/
+*_wpftmp.csproj

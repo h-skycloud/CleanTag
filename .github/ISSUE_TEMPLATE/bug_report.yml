@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible problem in CleanTag
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the tagging mode and view, and use example paths instead of personal file names.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: CleanTag version and Windows version
+    validations:
+      required: true

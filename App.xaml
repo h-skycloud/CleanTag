@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Application
+    x:Class="CleanTag.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CleanTag">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <!-- Other merged dictionaries here -->
+            </ResourceDictionary.MergedDictionaries>
+   <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light">
+     <SolidColorBrush x:Key="CanvasBrush" Color="#F3F4F1"/><SolidColorBrush x:Key="PreviewBrush" Color="#E8EBE6"/>
+     <SolidColorBrush x:Key="AccentBrush" Color="#087F72"/><SolidColorBrush x:Key="AccentSoftBrush" Color="#DCEFE9"/><SolidColorBrush x:Key="DangerBrush" Color="#B53D37"/>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Dark">
+     <SolidColorBrush x:Key="CanvasBrush" Color="#171B1B"/><SolidColorBrush x:Key="PreviewBrush" Color="#202727"/>
+     <SolidColorBrush x:Key="AccentBrush" Color="#5CD6BB"/><SolidColorBrush x:Key="AccentSoftBrush" Color="#183E36"/><SolidColorBrush x:Key="DangerBrush" Color="#FF9690"/>
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="HighContrast">
+     <SolidColorBrush x:Key="CanvasBrush" Color="{ThemeResource SystemColorWindowColor}"/><SolidColorBrush x:Key="PreviewBrush" Color="{ThemeResource SystemColorWindowColor}"/>
+     <SolidColorBrush x:Key="AccentBrush" Color="{ThemeResource SystemColorHighlightColor}"/><SolidColorBrush x:Key="AccentSoftBrush" Color="{ThemeResource SystemColorWindowColor}"/><SolidColorBrush x:Key="DangerBrush" Color="{ThemeResource SystemColorWindowTextColor}"/>
+    </ResourceDictionary>
+   </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

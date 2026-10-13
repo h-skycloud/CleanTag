@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Build
+        run: dotnet build CleanTag.sln -c Release -p:Platform=x64
+      - name: Test
+        run: dotnet run --project Tests/CleanTag.Tests.csproj -c Release
+      - name: Publish Windows x64 app
+        run: dotnet publish CleanTag.csproj -c Release -p:Platform=x64 -o artifacts/app
+      - name: Package app
+        shell: pwsh
+        run: |
+          Copy-Item LICENSE, README.md -Destination artifacts/app
+          $appDirectory = (Resolve-Path -LiteralPath artifacts/app).Path
+          $workspaceDirectory = (Resolve-Path -LiteralPath .).Path
+          if (-not $appDirectory.StartsWith($workspaceDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid artifact directory' }
+          Get-ChildItem -LiteralPath $appDirectory -Filter *.pdb -Recurse -File | ForEach-Object { Remove-Item -LiteralPath $_.FullName }
+          Compress-Archive -Path artifacts/app/* -DestinationPath artifacts/CleanTag-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CleanTag-windows-x64
+          path: artifacts/CleanTag-windows-x64.zip
+          if-no-files-found: error
