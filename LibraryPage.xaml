@@ -83,7 +83,7 @@
       </ListView>
      </Grid>
      <Grid Grid.Row="2" RowSpacing="6"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-      <TextBlock Text="Etiketler" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Etiketler" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/><Button x:Name="NewTagButton" Grid.Column="1" Content="+" Padding="8,2" Click="NewTag_Click" AutomationProperties.Name="Yeni etiket" ToolTipService.ToolTip="Yeni etiket"/></Grid>
       <ListView x:Name="TagFilter" Grid.Row="1" SelectionMode="Single" SelectionChanged="Filter_Changed" AutomationProperties.Name="Etiket filtresi">
        <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Ellipse Width="8" Height="8" Fill="{Binding Color, Converter={StaticResource TagColor}}"/><TextBlock Grid.Column="1" Text="{Binding DisplayName}" TextTrimming="CharacterEllipsis" FontSize="12" ToolTipService.ToolTip="{Binding DisplayName}"/></Grid></DataTemplate></ListView.ItemTemplate>
       </ListView>

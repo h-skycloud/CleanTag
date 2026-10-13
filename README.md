@@ -35,6 +35,8 @@ The unpackaged output is self-contained. Keep the published folder together when
 
 ## Usage
 
+Library: right-click a file or folder to open it, reveal its location, show Windows **Properties**, add tags, or remove tags from the selected items. Right-clicking an item already in a multi-selection preserves the selected group. The **+** button beside Tags creates a library tag without requiring a selected file. Right-click a tag in the sidebar to delete it from the entire catalog after confirmation; disk files and folders are preserved. Removal from an item supports undo. Catalog tag deletion is a separate operation and cannot be undone through item-tag undo.
+
 1. Open CleanTag and choose a folder. Nested files are scanned; large files sort first in review.
 2. Preview the current file. **Left / Recycle** sends it to the Recycle Bin. **Right / Keep** remembers the decision. **Defer** brings it back at the end of the session.
 3. Tag while reviewing, or switch to **Library** for gallery/list search, filters, and bulk tags.
@@ -52,7 +54,7 @@ The first-run migration uses a consistent SQLite backup, including committed WAL
 
 ## Project status
 
-CleanTag 0.1.0 is an early Windows x64 release. The current UI is Turkish; English localization, a signed installer, and automatic updates are future work. Published executables are currently unsigned. Preview support depends on Windows codecs and thumbnail providers; Office previews are extracts rather than full page layout. Folder tags do not propagate to their contents.
+CleanTag 0.1.1 is an early Windows x64 release. The current UI is Turkish; English localization, a signed installer, and automatic updates are future work. Published executables are currently unsigned. Preview support depends on Windows codecs and thumbnail providers; Office previews are extracts rather than full page layout. Folder tags do not propagate to their contents.
 
 GitHub Actions builds the solution, runs the checks and produces a downloadable `CleanTag-windows-x64.zip` artifact. Extract the complete archive and launch `CleanTag.exe`. The local test suite includes native recycle and real filesystem watcher checks and operates only on fixtures it creates.
 

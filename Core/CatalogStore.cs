@@ -386,6 +386,16 @@ public sealed partial class CatalogStore
         return new(id, name, color, group, aliases, 0);
     });
 
+    public Task DeleteTagAsync(string tagId) => RunAsync(connection =>
+    {
+        if (string.IsNullOrWhiteSpace(tagId)) throw new ArgumentException("Bir etiket seçin.");
+        using var transaction = connection.BeginTransaction();
+        if (Scalar(connection, transaction, "SELECT 1 FROM Tags WHERE Id=$id", ("$id", tagId)) == null) throw new IOException("Etiket bulunamadı.");
+        Execute(connection, transaction, "DELETE FROM FileTags WHERE TagId=$id", ("$id", tagId));
+        Execute(connection, transaction, "DELETE FROM Tags WHERE Id=$id", ("$id", tagId));
+        transaction.Commit(); return true;
+    });
+
     public Task<TagChange> ChangeTagsAsync(IEnumerable<string> fileIds, IEnumerable<string> tagIds, bool add) => RunAsync<TagChange>(connection =>
     {
         var files = fileIds.Distinct().ToArray(); var tags = tagIds.Distinct().ToArray();
@@ -426,7 +436,7 @@ public sealed partial class CatalogStore
     {
         using var transaction = connection.BeginTransaction();
         foreach (var pair in change.Added) Execute(connection, transaction, "DELETE FROM FileTags WHERE FileId=$file AND TagId=$tag", ("$file", pair.FileId), ("$tag", pair.TagId));
-        foreach (var pair in change.Removed) Execute(connection, transaction, "INSERT OR IGNORE INTO FileTags VALUES($file,$tag)", ("$file", pair.FileId), ("$tag", pair.TagId));
+        foreach (var pair in change.Removed) Execute(connection, transaction, "INSERT OR IGNORE INTO FileTags SELECT $file,Id FROM Tags WHERE Id=$tag", ("$file", pair.FileId), ("$tag", pair.TagId));
         transaction.Commit();
         return true;
     });

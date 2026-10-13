@@ -34,6 +34,9 @@ public sealed partial class LibraryPage : Page, IWorkspacePage
     public LibraryPage()
     {
         InitializeComponent();
+        FileList.AddHandler(UIElement.RightTappedEvent, new RightTappedEventHandler(File_RightTapped), true);
+        FileGrid.AddHandler(UIElement.RightTappedEvent, new RightTappedEventHandler(File_RightTapped), true);
+        TagFilter.AddHandler(UIElement.RightTappedEvent, new RightTappedEventHandler(Tag_RightTapped), true);
         _searchTimer.Tick += async (_, _) => { _searchTimer.Stop(); Model.Offset = 0; await LoadPageAsync(); };
         _watchTimer.Tick += async (_, _) => await RefreshWatchedResultsAsync();
         _ready = true;
@@ -241,7 +244,7 @@ public sealed partial class LibraryPage : Page, IWorkspacePage
         _busy = busy;
         if (busy && !disableContent) return; // ContentDialog owns input; preserve the selector and command focus while it closes.
         MainCommands.IsEnabled = SearchBox.IsEnabled = TaggingMode.IsEnabled = SelectionCommands.IsEnabled = !busy;
-        SourceFilter.IsEnabled = TagFilter.IsEnabled = FiltersButton.IsEnabled = BrowseButton.IsEnabled = !busy;
+        SourceFilter.IsEnabled = TagFilter.IsEnabled = FiltersButton.IsEnabled = BrowseButton.IsEnabled = NewTagButton.IsEnabled = !busy;
         foreach (var control in FilterPanel.Children.OfType<Control>()) control.IsEnabled = !busy;
         FileList.IsEnabled = FileGrid.IsEnabled = !busy;
         PreviousButton.IsEnabled = !busy && Model.Offset > 0;
@@ -330,6 +333,7 @@ public sealed partial class LibraryPage : Page, IWorkspacePage
         string[] ids = SelectedItems.Select(i => i.File.Id).ToArray(); SetBusy(true, disableContent: false);
         try
         {
+            await WaitForMenuAsync();
             var change = await TagDialog.ShowAsync(XamlRoot, ids, add, ItemLabel);
             if (change == null) return;
             // Let the dialog's queued focus/layout work finish before replacing selection containers.
@@ -365,6 +369,76 @@ public sealed partial class LibraryPage : Page, IWorkspacePage
         catch (Exception ex) { ShowError("Konum açılamadı", ex); }
     }
     private void File_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e) => Open_Click(sender, e);
+    private void File_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        if (_busy || sender is not ListViewBase view || e.OriginalSource is not DependencyObject origin || FindContainer(view, origin) is not { } container || container.Content is not LibraryItem item) return;
+        if (!view.SelectedItems.Contains(item)) { view.SelectedItems.Clear(); view.SelectedItems.Add(item); }
+        var menu = new MenuFlyout();
+        void Add(string text, RoutedEventHandler action, bool enabled = true) { var command = new MenuFlyoutItem { Text = text, IsEnabled = enabled }; command.Click += action; menu.Items.Add(command); }
+        bool single = SelectedItems.Count == 1;
+        Add(FoldersOnly ? "Klasörü aç" : "Dosyayı aç", Open_Click, single && item.File.Available);
+        Add("Konumunu göster", Reveal_Click, single && item.File.Available);
+        Add("Özellikler", Properties_Click, single && item.File.Available);
+        menu.Items.Add(new MenuFlyoutSeparator());
+        Add("Etiket ekle", AddTags_Click);
+        Add("Öğeden etiket kaldır", RemoveTags_Click, SelectedItems.Any(i => i.File.Tags.Count > 0));
+        e.Handled = true; menu.ShowAt(container, e.GetPosition(container));
+    }
+    private void Properties_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy || _selected == null) return;
+        try { FileProperties.Show(_selected.Path, App.WindowHandle); }
+        catch (Exception ex) { ShowError("Özellikler açılamadı", ex); }
+    }
+    private async void NewTag_Click(object sender, RoutedEventArgs e)
+    {
+        if (_busy) return; SetBusy(true, disableContent: false);
+        try
+        {
+            await WaitForMenuAsync();
+            if (await TagDialog.ShowAsync(XamlRoot, [], true) == null) return;
+            await WaitForMenuAsync(); await ReloadFiltersAsync();
+            ShowSuccess("Etiket oluşturuldu", "Etiketi bir öğeye eklemek için öğeyi seçip Etiket ekle'yi kullanın.");
+        }
+        catch (Exception ex) { ShowError("Etiket oluşturulamadı", ex); }
+        finally { SetBusy(false); }
+    }
+    private async Task WaitForMenuAsync()
+    {
+        var idle = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () => idle.TrySetResult())) await idle.Task;
+    }
+    private void Tag_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        if (_busy || e.OriginalSource is not DependencyObject origin || FindContainer(TagFilter, origin) is not { } container || container.Content is not CatalogTag tag || tag.Id.Length == 0) return;
+        var menu = new MenuFlyout(); var delete = new MenuFlyoutItem { Text = "Etiketi sil" };
+        delete.Click += async (_, _) => await DeleteTagAsync(tag);
+        menu.Items.Add(delete); e.Handled = true; menu.ShowAt(container, e.GetPosition(container));
+    }
+    private async Task DeleteTagAsync(CatalogTag tag)
+    {
+        if (_busy) return; SetBusy(true, disableContent: false);
+        try
+        {
+            await WaitForMenuAsync();
+            var current = (await AppWorkspace.Catalog.GetTagsAsync()).FirstOrDefault(t => t.Id == tag.Id);
+            if (current == null) return;
+            var result = await new ContentDialog { XamlRoot = XamlRoot, Title = $"“{current.Name}” etiketi silinsin mi?", Content = $"Etiket ve {current.Count:N0} öğeyle ilişkisi katalogdan kaldırılacak. Dosya ve klasörler diskte korunur.", PrimaryButtonText = "Etiketi sil", CloseButtonText = "Vazgeç", DefaultButton = ContentDialogButton.Close }.ShowAsync();
+            if (result != ContentDialogResult.Primary) return;
+            await AppWorkspace.Catalog.DeleteTagAsync(current.Id);
+            _lastTagChange = null; UndoTagsButton.IsEnabled = false;
+            await WaitForMenuAsync(); await ReloadFiltersAsync(); await LoadPageAsync();
+            ShowSuccess("Etiket silindi", current.Name);
+        }
+        catch (Exception ex) { ShowError("Etiket silinemedi", ex); }
+        finally { SetBusy(false); }
+    }
+    private static Microsoft.UI.Xaml.Controls.Primitives.SelectorItem? FindContainer(ListViewBase view, DependencyObject origin)
+    {
+        for (DependencyObject? node = origin; node != null && !ReferenceEquals(node, view); node = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node))
+            if (node is Microsoft.UI.Xaml.Controls.Primitives.SelectorItem item) return item;
+        return null;
+    }
     private async void Preview_Click(object sender, RoutedEventArgs e)
     {
         if (_busy || _selected == null) return; SetBusy(true);

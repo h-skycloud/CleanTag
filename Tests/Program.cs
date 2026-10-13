@@ -116,6 +116,7 @@ await Test("TAR lists files without extracting", async () =>
 await HistoryChecks.RunAsync(root, Test);
 await MigrationChecks.RunAsync(root, Test);
 await CatalogChecks.RunAsync(root, Test);
+await TagManagementChecks.RunAsync(root, Test);
 await FolderScanChecks.RunAsync(root, Test);
 await MonitoringChecks.RunAsync(root, Test);
 await Test("Deferred round preserves Back and returns after remaining cards", async () =>

@@ -6,7 +6,7 @@
     <AssemblyName>CleanTag</AssemblyName>
     <RootNamespace>CleanTag</RootNamespace>
     <Product>CleanTag</Product>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>CleanTag contributors</Authors>
     <Description>Preview, review, tag, and reclaim files on Windows.</Description>
     <ApplicationManifest>app.manifest</ApplicationManifest>
