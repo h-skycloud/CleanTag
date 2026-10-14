@@ -25,7 +25,9 @@ public sealed partial class FilePreview : UserControl
     private bool _rendering;
 
     public FilePreview() => InitializeComponent();
-    private void Control_Unloaded(object sender, RoutedEventArgs e) => Clear();
+    // Modal hosts can transiently unload content while opening. Their owner releases it explicitly.
+    public bool ReleaseOnUnload { get; set; } = true;
+    private void Control_Unloaded(object sender, RoutedEventArgs e) { if (ReleaseOnUnload) Clear(); }
     public void ShowFallback(string title, string message)
     { Clear(); FallbackTitle.Text = title; FallbackText.Text = message; }
 

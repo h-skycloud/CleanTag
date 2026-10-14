@@ -8,6 +8,8 @@ public sealed partial class WorkspacePage : Page, IWorkspacePage
 {
     private ReviewPage? _review;
     private LibraryPage? _library;
+    private DiskAnalysisPage? _analysis;
+    private string? _analysisRoot;
     private bool _loading, _switching;
     private object? _previousSelection;
     public bool CanLeave => !_loading && !_switching && (PageHost.Content as IWorkspacePage)?.CanLeave != false;
@@ -24,7 +26,7 @@ public sealed partial class WorkspacePage : Page, IWorkspacePage
             await AppWorkspace.InitializeAsync();
             StartupPanel.Visibility = Visibility.Collapsed; Navigation.Visibility = Visibility.Visible;
             bool library = Environment.GetCommandLineArgs().Contains("--library");
-            Navigation.SelectedItem = Navigation.MenuItems[library ? 1 : 0];
+            Navigation.SelectedItem = Navigation.MenuItems[Environment.GetCommandLineArgs().Contains("--analyze") ? 2 : library ? 1 : 0];
         }
         catch (Exception ex)
         { StartupTitle.Text = "Katalog açılamadı"; StartupMessage.Text = ex.Message; RetryButton.Visibility = Visibility.Visible; }
@@ -40,8 +42,10 @@ public sealed partial class WorkspacePage : Page, IWorkspacePage
         {
             if (PageHost.Content is IWorkspacePage oldPage) await oldPage.PrepareToLeaveAsync();
             var tag = (args.SelectedItem as NavigationViewItem)?.Tag as string;
-            PageHost.Content = tag == "library" ? _library ??= new LibraryPage() : _review ??= new ReviewPage();
+            if (tag == "library" && _library == null) { _library = new LibraryPage(); _library.AnalyzeRequested += OpenAnalysis; }
+            PageHost.Content = tag == "analysis" ? _analysis ??= new DiskAnalysisPage() : tag == "library" ? _library! : _review ??= new ReviewPage();
             _previousSelection = args.SelectedItem;
+            if (tag == "analysis" && _analysisRoot != null) { string root = _analysisRoot; _analysisRoot = null; await _analysis!.AnalyzeAsync(root); }
         }
         finally { _switching = false; }
     }
@@ -51,4 +55,5 @@ public sealed partial class WorkspacePage : Page, IWorkspacePage
         if (PageHost.Content is IWorkspacePage page) await page.PrepareToLeaveAsync();
         await AppWorkspace.Catalog.FlushAsync();
     }
+    private void OpenAnalysis(string root) { _analysisRoot = root; Navigation.SelectedItem = Navigation.MenuItems[2]; }
 }

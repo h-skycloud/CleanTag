@@ -27,7 +27,8 @@ jobs:
       - name: Package app
         shell: pwsh
         run: |
-          Copy-Item LICENSE, README.md -Destination artifacts/app
+          Copy-Item LICENSE, README.md, CHANGELOG.md -Destination artifacts/app
+          Copy-Item -LiteralPath docs -Destination artifacts/app/docs -Recurse
           $appDirectory = (Resolve-Path -LiteralPath artifacts/app).Path
           $workspaceDirectory = (Resolve-Path -LiteralPath .).Path
           if (-not $appDirectory.StartsWith($workspaceDirectory + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid artifact directory' }

@@ -12,7 +12,7 @@
   <Identity
     Name="CE62AFE9-A5D3-443C-8BA7-E0D86113F2EC"
     Publisher="CN=CleanTag"
-    Version="0.1.1.0" />
+    Version="0.2.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="CE62AFE9-A5D3-443C-8BA7-E0D86113F2EC" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

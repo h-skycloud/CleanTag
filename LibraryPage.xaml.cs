@@ -15,6 +15,7 @@ namespace CleanTag;
 public sealed partial class LibraryPage : Page, IWorkspacePage
 {
     public LibraryViewModel Model { get; } = new();
+    public event Action<string>? AnalyzeRequested;
     private readonly DispatcherTimer _searchTimer = new() { Interval = TimeSpan.FromMilliseconds(220) };
     private readonly DispatcherTimer _watchTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
     private bool _watchPending;
@@ -379,6 +380,7 @@ public sealed partial class LibraryPage : Page, IWorkspacePage
         Add(FoldersOnly ? "Klasörü aç" : "Dosyayı aç", Open_Click, single && item.File.Available);
         Add("Konumunu göster", Reveal_Click, single && item.File.Available);
         Add("Özellikler", Properties_Click, single && item.File.Available);
+        if (item.File.IsFolder) Add("Alanı analiz et", (_,_) => AnalyzeRequested?.Invoke(item.File.Path), single && item.File.Available);
         menu.Items.Add(new MenuFlyoutSeparator());
         Add("Etiket ekle", AddTags_Click);
         Add("Öğeden etiket kaldır", RemoveTags_Click, SelectedItems.Any(i => i.File.Tags.Count > 0));

@@ -5,6 +5,7 @@
    <NavigationView.MenuItems>
     <NavigationViewItem Content="Gelenler" Tag="review" Icon="OpenFile"/>
     <NavigationViewItem Content="Kütüphane" Tag="library" Icon="Library"/>
+    <NavigationViewItem Content="Disk Analizi" Tag="analysis" Icon="Map"/>
    </NavigationView.MenuItems>
    <ContentControl x:Name="PageHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
   </NavigationView>

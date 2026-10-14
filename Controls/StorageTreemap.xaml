@@ -1,0 +1,6 @@
+<UserControl x:Class="CleanTag.Controls.StorageTreemap" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml" Loaded="Control_Loaded" Unloaded="Control_Unloaded">
+ <Grid Background="{ThemeResource CanvasBrush}">
+  <canvas:CanvasControl x:Name="Surface" AutomationProperties.Name="Disk alanı haritası. Klavyeyle aynı öğelere üstteki listeden erişebilirsiniz." Draw="Surface_Draw" SizeChanged="Surface_SizeChanged" PointerMoved="Surface_PointerMoved" PointerExited="Surface_PointerExited" Tapped="Surface_Tapped" DoubleTapped="Surface_DoubleTapped"/>
+  <TextBlock x:Name="EmptyLabel" Text="Bir klasör seçip analizi başlatın." HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="24" Foreground="{ThemeResource TextFillColorSecondaryBrush}" IsHitTestVisible="False"/>
+ </Grid>
+</UserControl>

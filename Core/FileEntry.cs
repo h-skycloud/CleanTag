@@ -134,5 +134,7 @@ public static class FileSafety
             throw new IOException("Sistem, çevrimdışı veya bağlantılı dosyalarda silme devre dışı.");
         if (f.Length != entry.Size || f.LastWriteTimeUtc.Ticks != entry.ModifiedTicks)
             throw new IOException("Dosya taramadan sonra değişti. Yeniden tarayıp içeriğini kontrol edin.");
+        if (entry.NativeId != null && FileIdentity.TryRead(entry.FullPath) != entry.NativeId)
+            throw new IOException("Dosya kimliği değişti. Yeniden tarayıp içeriğini kontrol edin.");
     }
 }

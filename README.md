@@ -12,6 +12,7 @@ Local Windows app for reviewing files with a real preview, then tagging them so 
 - **Kütüphane / Library** — search and filter tagged files and folders across registered locations.
 - **Tags** — names, colors, groups, aliases, bulk add/remove, undo. File tags and folder tags are separate modes.
 - **Preview** — images, SVG, PDF pages, audio/video, text, Office/OpenDocument extracts, archives, and Windows thumbnail fallbacks.
+- **Disk Analizi / Disk Analysis** — analyze any folder or drive without catalog registration; interactive native treemap, folder navigation, extension totals, filters and explicit single-item tagging.
 - **Safety** — Recycle Bin by default, optional permanent delete (off each launch), skip changed/missing files, never upload files.
 
 ## Requirements
@@ -46,6 +47,10 @@ Arrow keys map to review actions unless you are typing in a text field. **Ask be
 
 ## Data
 
+**Disk Analysis:** open **Disk Analizi**, choose a folder or drive (or enter its path), then **Analiz et**. Click a rectangle to select its item in the list. Double-click a file rectangle to enter its containing folder; double-click a folder row to enter that folder. Use the breadcrumb, **Üst klasör** or **Tarama kökü** to return without rescanning. Search or use **Filtreler ve sıralama** to narrow files. **Yenile** rescans and **Durdur** preserves explicitly partial results. Drag the separator to resize the map, or use **Haritayı genişlet**. Preview, tag, open, reveal and Properties apply to the selected item. A library folder also offers **Alanı analiz et** in its context menu.
+
+Analysis is an in-memory snapshot. It does not add a Source, import descendants or replace catalog folder sizes. Clicking **Etiketle** explicitly registers that one file or folder; folder tags remain separate. Totals are logical bytes, count hard-linked paths separately, and do not estimate recoverable physical space. Zero-byte files remain in the list. Protected/unreadable locations and skipped reparse targets make the result visibly incomplete. Disk Analysis offers confirmed recycling for a single eligible file, with native identity and metadata checks, and no permanent-delete fallback. See [architecture, benchmarks and NTFS assessment](docs/DISK-ANALYSIS.md).
+
 Catalog path: `%LOCALAPPDATA%\CleanTag\catalog.sqlite`
 
 If you previously used LookClean, CleanTag copies that catalog on first run and then uses the CleanTag folder. File contents are not stored. Use Library backup/restore/export for metadata only.
@@ -54,7 +59,7 @@ The first-run migration uses a consistent SQLite backup, including committed WAL
 
 ## Project status
 
-CleanTag 0.1.1 is an early Windows x64 release. The current UI is Turkish; English localization, a signed installer, and automatic updates are future work. Published executables are currently unsigned. Preview support depends on Windows codecs and thumbnail providers; Office previews are extracts rather than full page layout. Folder tags do not propagate to their contents.
+CleanTag 0.2.0 is an early Windows x64 release. The current UI is Turkish; English localization, a signed installer, and automatic updates are future work. Published executables are currently unsigned. Preview support depends on Windows codecs and thumbnail providers; Office previews are extracts rather than full page layout. Folder tags do not propagate to their contents.
 
 GitHub Actions builds the solution, runs the checks and produces a downloadable `CleanTag-windows-x64.zip` artifact. Extract the complete archive and launch `CleanTag.exe`. The local test suite includes native recycle and real filesystem watcher checks and operates only on fixtures it creates.
 
